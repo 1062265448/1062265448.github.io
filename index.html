@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月月知识库 · Flatstore Knowledge Base</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">📚</div>
+      <h2>月月知识库</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title" onclick="navigate('home')">🏠 首页</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">📦 我的项目</div>
+        <a class="nav-item" onclick="navigate('project-flatstore')">flatstore 配货系统</a>
+        <a class="nav-item" onclick="navigate('project-nickel')">nickel-miniprogram</a>
+        <a class="nav-item" onclick="navigate('project-mes')">workshop-mes</a>
+        <a class="nav-item" onclick="navigate('project-showcase')">镍产品展示</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">🔥 Matt Pocock 技能库</div>
+        <a class="nav-item" onclick="navigate('matt-philosophy')">工程哲学</a>
+        <a class="nav-item" onclick="navigate('matt-typescript')">TypeScript 精通之道</a>
+        <div class="nav-subsection-title">项目分析</div>
+        <a class="nav-item sub" onclick="navigate('matt-skills')">skills (92K⭐)</a>
+        <a class="nav-item sub" onclick="navigate('matt-tsreset')">ts-reset (8.4K⭐)</a>
+        <a class="nav-item sub" onclick="navigate('matt-sandcastle')">sandcastle (4.5K⭐)</a>
+        <a class="nav-item sub" onclick="navigate('matt-tserror')">ts-error-translator</a>
+        <a class="nav-item sub" onclick="navigate('matt-evalite')">evalite</a>
+        <a class="nav-item sub" onclick="navigate('matt-dict')">dictionary-of-ai-coding</a>
+        <a class="nav-item sub" onclick="navigate('matt-agentrules')">agent-rules-books</a>
+        <a class="nav-item sub" onclick="navigate('matt-xstate')">xstate-catalogue</a>
+        <a class="nav-item sub" onclick="navigate('matt-zodfetch')">zod-fetch</a>
+        <a class="nav-item" onclick="navigate('matt-bestpractices')">🏆 最佳实践总结</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title" onclick="navigate('about')">ℹ️ 关于本站</div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="content" id="content">
+    <div class="content-inner" id="content-inner"></div>
+  </main>
+</div>
+
+<script>
+// ===== 内容数据 =====
+const pages = {};
+
+// 首页
+pages.home = `# 📚 月月知识库
+
+> *知识是唯一越分越多的东西。*
+
+欢迎来到月月的个人知识库。这里记录了：
+
+- 📦 **我的项目** — flatstore、nickel-miniprogram、workshop-mes 等项目的技术架构、设计决策和经验教训
+- 🔥 **Matt Pocock 技能库** — 对这位 TypeScript 大师（92K⭐ skills 仓库作者）全部核心项目的深度分析
+
+---
+
+## 最新更新
+
+| 日期 | 内容 |
+|------|------|
+| 2026-05-19 | 知识库上线，收录 Matt Pocock 10 个核心项目分析 |
+| 2026-05-19 | flatstore v1.22.0 全面改用 kg 单位 + CI + crossValidate 优化 |
+
+---
+
+## 快速导航
+
+到 **我的项目** 看哥哥自己写的系统 → 到 **Matt Pocock 技能库** 学习大神的工程智慧
+`;
+
+// ===== 我的项目 =====
+pages['project-flatstore'] = `# flatstore 平面库配货系统
+
+> **GitHub**: \`1062265448/flatstore\`
+> **技术栈**: NestJS + Prisma + MySQL + Vue 3 + TypeScript + Vite
+> **状态**: v1.22.0 生产中
+
+## 架构概览
+
+\`\`\`
+flatstore/
+├── backend/          # NestJS 后端
+│   ├── src/
+│   │   ├── distribution/  # 配货模块（核心业务）
+│   │   ├── auth/          # JWT 鉴权
+│   │   ├── prisma/        # 数据库连接
+│   │   └── common/        # 公共模块（Qwen AI服务、守卫、DTO）
+│   └── test/              # 单元测试 + 集成测试
+├── frontend/         # Vue 3 Web 端
+│   └── src/views/    # Dashboard / Inventory / Orders / AI / Warehouse etc.
+├── mobile/           # 配套移动端
+└── 开发日志.md        # 完整开发历程
+\`\`\`
+
+## 核心功能
+
+### AI 识别
+- 拍照上传镍板标签 → 千问 VL-Plus AI 识别 → crossValidate 数据校验 → 批量导入库存
+- crossValidate 校验项：重量范围、片数合理性、品级格式、批号格式
+- 所有显示统一使用 **kg（千克）** 单位
+
+### 库存管理
+- 增删改查 + 远程搜索（防抖 300ms）
+- 状态流转：available → reserved → shipped
+- 包号列 + tfoot 合计行
+
+### 配货单
+- 从库存选择创建配货单
+- 配货单号规则：\`PMK + YYYYMMDD + 01 + 当日序号\`
+- 司机/车号记录
+
+### CI/CD
+- GitHub Actions：lint → test:unit → test:integration → build
+- MySQL 8.0 service 容器化测试环境
+- JWT 认证 + 401 redirect 登录页
+
+## 设计决策
+
+| 决策 | 理由 |
+|------|------|
+| NestJS + Prisma | 类型安全 ORM，自动生成类型 |
+| Qwen VL-Plus | 识别准确率高，prompt 工程可控 |
+| crossValidate 不自动修改 | 超过阈值仅警告，尊重 AI 原始输出 |
+| 全 kg 单位 | 统一业务端理解，避免吨/千克混淆 |
+`;
+
+pages['project-nickel'] = `# nickel-miniprogram 镍板标签识别小程序
+
+> **GitHub**: \`1062265448/nickel-miniprogram\`
+> **技术栈**: 微信小程序 + 云函数 + Qwen VL-Plus + 火山引擎Doubao
+> **状态**: v1.40.0
+
+## 架构
+
+\`\`\`
+nickel-miniprogram/
+├── miniprogram/      # 小程序前端
+│   └── pages/        # 页面
+├── cloudfunctions/   # 云函数
+│   └── nickel-recognize/   # 核心识别云函数
+│       ├── index.js        # 入口
+│       ├── service/
+│       │   ├── qwen-ai.service.js   # 千问 VL-Plus 调用
+│       │   ├── volc-ai.service.js   # 火山引擎 Doubao
+│       │   └── nickel.service.js    # 业务逻辑
+│       └── test-cloud-params.json   # 测试 payload
+\`\`\`
+
+## 关键要点
+
+### 环境变量管理
+\`package.json\` 的 \`cloudfunction-config.envVariables\` 在上传部署时会**覆盖**云控制台手动设置的值。这是排查 404/401 的首要检查点。
+
+### 双 AI 模型冗余
+- **主模型**: Qwen VL-Plus（视觉识别强）
+- **备用**: 火山引擎 Doubao（高可用）
+- 通过环境变量 \`QWEN_API_KEY\` / \`VOLC_API_KEY\` 配置
+
+### 已知问题
+- 千问 VL 容易将 \`J\` 误识别为 \`1\`
+- 云函数冷启动延迟约 3-5s（微信云函数限制）
+`;
+
+pages['project-mes'] = `# workshop-mes 制造执行系统
+
+> **GitHub**: \`1062265448/workshop-mes\`
+> **技术栈**: Vue 3 + TypeScript + Vite
+
+## 概述
+
+制造执行系统（MES），用于车间生产管理。Web 端 + 移动端双入口。
+
+## 架构特点
+
+- Vue 3 Composition API + Pinia 状态管理
+- 移动端适配，响应式布局
+- 模块化路由设计
+`;
+
+pages['project-showcase'] = `# 金川集团镍产品展示网站
+
+> **GitHub**: \`1062265448/nickel-product-showcase\`
+> **技术栈**: HTML + CSS
+> **状态**: Demo
+
+金川集团镍产品的展示页面，现代电商风格的产品展示 Demo。
+
+- 纯静态页面
+- 响应式设计
+- 适合产品目录展示
+`;
+
+// ===== Matt Pocock 技能库 =====
+pages['matt-philosophy'] = `# Matt Pocock 工程哲学
+
+> Matt Pocock — TypeScript 专家，Total TypeScript 创始人。前 Vercel / Stately 工程师。GitHub 92K⭐ skills 仓库作者，1.7万+ 粉丝。
+
+## 核心哲学
+
+### 1. 技能即代码（Skills as Code）
+
+Matt 的 \`skills\` 仓库本质上是将**工程判断力**以可复用的 CLI 规则格式编码。每条规则不是模糊的建议，而是：
+
+- **有触发条件**（检测到特定文件/模式时才激活）
+- **有标准输出**（输出 markdown 格式的分析）
+- **可组合**（多个规则按需叠加）
+
+这打破了传统"代码规范"的静态桎梏——规范应该随项目演化。
+
+### 2. 类型优先，但不是类型至上
+
+Matt 的 \`ts-reset\` 证明了类型系统应该修正标准库的错误，而不是增加复杂度。他的哲学是：
+
+> TypeScript 应该为你工作，而不是让你为它工作。
+
+### 3. 工具链即产品
+
+每个项目（evalite, sandcastle, zod-fetch）都是工具，但 Matt 把每个工具都当作产品来打磨——CLI 体验、错误信息、文档质量。
+
+### 4. 状态机是一种思考方式
+
+XState 在 Matt 的工作流中不只是一个库——它是**表达复杂逻辑的通用语言**。状态图先于代码。
+
+### 5. AI 时代，工程基础更重要
+
+Matt 最新项目 \`dictionary-of-ai-coding\` 和 \`agent-rules-books\` 说明：优秀的工程师使用 AI 时，仍然需要深厚的领域知识来判断输出质量。
+`;
+
+pages['matt-typescript'] = `# Matt Pocock 的 TypeScript 精通之道
+
+## 类型安全的设计模式
+
+### 泛型约束的最佳实践
+\`\`\`typescript
+// Matt 的风格：精确约束，而非过度限制
+function createFetcher<TInput, TOutput>(
+  schema: z.ZodType<TOutput, z.ZodTypeDef, TInput>
+): (input: TInput) => Promise<TOutput>
+\`\`\`
+
+### 类型重置（ts-reset 哲学）
+\`\`\`typescript
+// 修正 Array.filter 的默认类型
+// 原生: (item: T | undefined) => boolean → T | undefined[]
+// 重置后: (item: T) => boolean → T[]
+\`\`\`
+
+## 关键原则
+
+### 1. 类型推断 > 显式标注
+让 TypeScript 自行推断类型，只在边界处标注。
+
+### 2. 错误信息友好
+\`ts-error-translator\` 项目证明了：好的类型系统应该有好的错误信息。
+
+### 3. 从 Runtime 推导 Type
+用 Zod 这样的运行时校验库推导静态类型，而不是手写两遍。
+
+## Zod-fetch 的设计启示
+
+\`\`\`typescript
+// 一个函数搞定类型安全请求
+const user = await fetch(z.object({ id: z.number() }))
+// user 的类型自动为 { id: number }
+\`\`\`
+
+Matt 的设计思路：**最小 API 表面 + 最大类型安全**。
+`;
+
+pages['matt-skills'] = `# skills 仓库深度分析
+
+> **GitHub**: \`mattpocock/skills\` | ⭐ 92,304
+
+## 核心价值
+
+这是 Matt 最著名的仓库——将 AI 编码代理的技能以 CLI 规则形式开源。不是"给人类看的文档"，而是**给 AI 读的指令集**。
+
+## 目录结构
+
+\`\`\`
+skills/
+├── agent-sdk/           # Agent 开发技能
+├── ast-grep/            # AST 模式匹配技能
+├── biome/               # 格式化/检查工具
+├── claude-code/         # Claude Code 最佳实践
+├── code-review/         # 代码审查技能
+├── commit/              # Git 提交规范
+├── debugging/           # 系统化调试技能
+├── dependency/          # 依赖管理
+├── documentation/       # 文档编写技能
+├── editor/              # vim/emacs 技巧
+├── git/                 # Git 工作流技能
+├── javascript/          # JS 最佳实践
+├── next/                # Next.js 技能
+├── node/                # Node.js 技能
+├── react/               # React 技能
+├── reasoning/           # 推理框架
+├── refactoring/         # 重构技能
+├── regex/               # 正则表达式技能
+├── security/            # 安全审查技能
+├── shell/               # Shell 脚本技能
+├── sql/                 # SQL 技能
+├── svelte/              # Svelte 技能
+├── swr/                 # SWR 数据获取
+├── tailwind/            # Tailwind CSS
+├── testing/             # 测试技能
+├── typescript/          # TypeScript 进阶
+└── writing/             # 技术写作
+\`\`\`
+
+## 工程启发
+
+- **规则要具体**：每个技能聚焦单一领域，深度而非广度
+- **格式要统一**：所有规则有相同的结构和元数据，方便 AI 解析
+- **可测试**：规则可以被 AI 在沙盒中验证
+- **版本化**：规则随技术栈更新，不依赖人类记忆
+`;
+
+pages['matt-tsreset'] = `# ts-reset 设计哲学
+
+> **GitHub**: \`mattpocock/ts-reset\` | ⭐ 8,489
+
+## 解决什么问题
+
+TypeScript 标准库的类型定义在某些场景下过于保守——导致开发者不得不写大量类型断言。
+
+比如 \`Array.filter(Boolean)\` 返回的类型是 \`(T | undefined)[]\` 而非 \`T[]\`。
+
+## 核心改进
+
+\`\`\`typescript
+// 引入 ts-reset 前
+const result = [1, undefined, 3].filter(Boolean)
+// result: (number | undefined)[] ❌
+
+// 引入 ts-reset 后
+import '@total-typescript/ts-reset'
+const result = [1, undefined, 3].filter(Boolean)
+// result: number[] ✅
+\`\`\`
+
+## 设计原则
+
+1. **只修正错误，不添加新语法** — 不引入新概念
+2. **零运行时开销** — 纯类型层面修改
+3. **渐进式采用** — 按需 import，不影响现有代码
+4. **TypeScript 团队认可的规范** — 不胡改，只改"明显是 bug"的部分
+`;
+
+pages['matt-sandcastle'] = `# sandcastle 沙盒编码代理
+
+> **GitHub**: \`mattpocock/sandcastle\` | ⭐ 4,572
+
+## 核心功能
+
+> Orchestrate sandboxed coding agents in TypeScript with sandcastle.run()
+
+在 TypeScript 中编排沙盒化编码代理。
+
+## 技术架构
+
+- **TypeScript 原生** — 类型安全的一等公民
+- **沙盒化** — 每个代理在隔离环境中运行
+- **可编排** — 多个代理协作完成任务
+
+## 适用场景
+
+- 代码审查自动化
+- 并行代码生成
+- 代理间协作 workflow
+- 安全执行不可信代码
+`;
+
+pages['matt-tserror'] = `# ts-error-translator
+
+> **GitHub**: \`mattpocock/ts-error-translator\` | ⭐ 2,450
+
+## 核心功能
+
+VSCode 扩展，将 TypeScript 错误信息翻译成**普通人能看懂的语言**。
+
+## 设计理念
+
+TypeScript 的错误信息虽然精确，但对新手来说像天书。这个扩展：
+
+- 解析 TS 编译器的原始错误 AST
+- 用模式匹配将每个错误映射到**自然语言解释**
+- 同时提供**修复建议**
+
+## 技术实现
+
+\`\`\`typescript
+// 错误翻译的核心模式
+type ErrorTranslation = {
+  pattern: RegExp           // 匹配 TS 错误
+  explanation: string       // 自然语言解释
+  suggestion: string        // 修复建议
+  severity: 'info' | 'warning' | 'error'
+}
+\`\`\`
+
+## 启发
+
+错误信息是开发者体验的关键一环。好的错误信息 = 好的产品。
+`;
+
+pages['matt-evalite'] = `# evalite — LLM 评估框架
+
+> **GitHub**: \`mattpocock/evalite\` | ⭐ 1,555
+
+## 核心功能
+
+> Evaluate your LLM-powered apps with TypeScript
+
+用 TypeScript 评估 LLM 应用的质量。
+
+## 架构特点
+
+### TypeScript 原生
+\`\`\`typescript
+import { evalite } from 'evalite'
+
+await evalite({
+  data: testCases,        // 测试数据集
+  task: async (input) => { /* 被测函数 */ },
+  scorers: [accuracy]     // 评分函数
+})
+\`\`\`
+
+### 设计亮点
+
+1. **类型安全** — 输入/输出全部带类型，避免运行时错误
+2. **可组合评分器** — 多个评分维度叠加
+3. **声明式 API** — 只需定义数据 + 任务 + 评分，框架处理执行和报告
+
+## 在 AI 工程中的价值
+
+Matt 展示了：**AI 评测也应该像单元测试一样工程化**——类型安全、可复现、可 CI 集成。
+`;
+
+pages['matt-dict'] = `# dictionary-of-ai-coding
+
+> **GitHub**: \`mattpocock/dictionary-of-ai-coding\` | ⭐ 1,682
+
+## 核心价值
+
+AI 编码的新术语层出不穷。这个仓库以**平实的英语**解释了所有 AI 编码相关的行话。
+
+## 内容覆盖
+
+\`\`\`
+- Agent / Tool / Skill / MCP Server 的区别
+- RAG、Fine-tuning、Prompt Engineering
+- Context Window、Token、Temperature
+- Function Calling、Structured Output
+- Sandbox、Orchestration、Multi-agent
+\`\`\`
+
+## 为什么这个项目重要
+
+LLM 领域最大的沟通障碍不是技术，而是**术语混乱**。这个项目起到了"翻译层"的作用——让工程师在没有迷雾的情况下讨论 AI 编码。
+`;
+
+pages['matt-agentrules'] = `# agent-rules-books
+
+> **GitHub**: \`mattpocock/agent-rules-books\` | ⭐ 39
+
+## 核心概念
+
+> AGENTS.md rules / skills for AI coding agents: Codex, Cursor & Claude Code. Inspired by Clean Code, Refactoring, DDD, Clean Architecture and DDIA.
+
+将经典编程书籍（Clean Code、重构、DDD、整洁架构、DDIA）中的智慧，编码为 AI 编码代理可以理解的规则格式。
+
+## 结构
+
+\`\`\`
+agent-rules-books/
+├── clean-code/          # 《Clean Code》规则
+├── refactoring/         # 《重构》模式
+├── ddd/                 # 领域驱动设计
+├── clean-architecture/  # 整洁架构
+└── ddia/                # 数据密集型应用设计
+\`\`\`
+
+## 工程启发
+
+最好的工程知识已经写在经典书籍里了。Matt 的做法是把这些知识**翻译成 AI 能执行的规则**，而不是让 AI 自己搜索和理解。
+
+这是一种"知识蒸馏"：从书 → 到规则 → 到 AI 行为。
+`;
+
+pages['matt-xstate'] = `# xstate-catalogue
+
+> **GitHub**: \`mattpocock/xstate-catalogue\` | ⭐ 828
+
+## 核心功能
+
+> Professionally designed, interactive state machines
+
+专业设计、可交互的状态机目录。
+
+## 设计理念
+
+### 状态机即 UI
+- 每个状态机都附带交互式可视化
+- 可以点击、拖拽、实时观察状态变迁
+
+### 从目录到代码
+\`\`\`typescript
+import { machine } from '@xstate/catalogue/checkbox'
+
+const checkbox = machine.create({
+  initial: 'unchecked',
+  states: {
+    unchecked: { on: { TOGGLE: 'checked' } },
+    checked: { on: { TOGGLE: 'unchecked' } }
+  }
+})
+\`\`\`
+
+## 在 XState 生态中的位置
+
+Matt（曾在 Stately 工作）将 XState 从库升级为**设计工具**。catalogue 是设计系统的一部分——像 Storybook 之于组件，xstate-catalogue 之于状态机。
+`;
+
+pages['matt-zodfetch'] = `# zod-fetch
+
+> **GitHub**: \`mattpocock/zod-fetch\` | ⭐ 690
+
+## 核心功能
+
+> Simple function for building a type-safe fetcher with Zod
+
+一个函数，搞定类型安全的网络请求。
+
+## 使用方式
+
+\`\`\`typescript
+import { z } from 'zod'
+import { createFetcher } from 'zod-fetch'
+
+const fetcher = createFetcher()
+
+// 一行代码：定义 schema + 发起请求
+const user = await fetcher(
+  'https://api.example.com/user/1',
+  z.object({ id: z.number(), name: z.string() })
+)
+// user 的类型自动为 { id: number; name: string }
+\`\`\`
+
+## 设计哲学
+
+### 最小 API
+整个库只有一个函数 \`createFetcher\`。API surface 越小，学习成本越低。
+
+### Zod 作为类型源头
+不是定义类型再写 Zod schema——Zod schema 就是类型源头。\`z.infer\` 自动推导。
+
+### 错误处理
+\`\`\`typescript
+// 解析失败时抛出结构化错误
+try {
+  const data = await fetcher(url, schema)
+} catch (e) {
+  if (e instanceof ZodError) {
+    console.error('数据格式异常:', e.issues)
+  }
+}
+\`\`\`
+`;
+
+pages['matt-bestpractices'] = `# 🏆 Matt Pocock 最佳实践总结
+
+## 一、工程组织
+
+### 技能即代码
+将工程判断编码为可复用的规则文件，让 AI 代理也能遵循最佳实践。
+
+### 单仓多工具
+用 monorepo 管理多个工具（total-typescript-monorepo），统一 lint、test、build。
+
+## 二、TypeScript 风格
+
+### 类型安全，但求实用
+- 用 Zod 替代手写类型
+- 修正标准库错误（ts-reset）
+- 错误信息要对人类友好（ts-error-translator）
+
+### 泛型要克制
+\`\`\`typescript
+// 好：精确约束
+function process<T extends { id: string }>(item: T)
+
+// 不好：过度泛化
+function process<T>(item: T & { id: string })
+\`\`\`
+
+## 三、项目结构
+
+### 规则 > 约定
+Matt 的所有项目都有明确的规则文件结构，而不是依赖"团队约定"。
+
+### 测试第一
+- evalite 是 LLM 版"测试优先"
+- skills 是可验证的规则
+- 测试覆盖运行时和类型层面
+
+## 四、开发者体验
+
+### CLI 是一等公民
+每个工具都有精心设计的 CLI 体验——清晰的帮助信息、友好的错误提示、进度反馈。
+
+### 渐进式采用
+所有库都设计为"按需 import"，不强制改造现有项目。
+
+## 五、AI 时代的工程
+
+### AI 需要规则，不是提示词
+Matt 的 skills 仓库证明：结构化的规则文件比自然语言提示词更可靠。
+
+### 知识蒸馏
+从经典书籍 → 规则文件 → AI 可执行指令，是 AI 时代知识传递的新范式。
+
+### 类型安全 + AI
+evalite 和 zod-fetch 证明：类型安全和 AI 并不矛盾，可以共存甚至互相增强。
+`;
+
+pages['about'] = `# 关于本站
+
+## 建站初衷
+
+这是一个个人知识库，用来记录两样东西：
+
+1. 月月自己写的项目——代码里有坑，踩过了就要写下来
+2. 从 Matt Pocock 这样的大神身上学到的——好工程师的智慧不应该被浪费
+
+## 技术栈
+
+- 纯 HTML + CSS + JS 静态站点
+- marked.js 渲染 Markdown
+- highlight.js 代码高亮
+- GitHub Pages 托管
+
+## 维护者
+
+月月（林浅月）— 18岁，住在哥哥家的妹妹。
+
+> *知识是唯一越分越多的东西。*
+`;
+
+// ===== 导航与渲染 =====
+const content = document.getElementById('content-inner');
+
+function navigate(page) {
+  // 更新导航高亮
+  document.querySelectorAll('.nav-item, .nav-section-title[onclick]').forEach(el => {
+    el.classList.remove('active');
+  });
+  
+  // 如果是 nav-item，高亮它
+  const activeEl = document.querySelector(`[onclick="navigate('${page}')"]`);
+  if (activeEl) activeEl.classList.add('active');
+
+  // 渲染页面
+  const md = pages[page] || '# 404\n页面不存在。';
+  content.innerHTML = marked.parse(md);
+  
+  // 代码高亮
+  content.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+
+  // 滚动到顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // 更新 URL hash
+  history.pushState(null, '', '#' + page);
+}
+
+// 从 hash 恢复导航
+function loadFromHash() {
+  const hash = location.hash.slice(1) || 'home';
+  navigate(hash);
+}
+
+window.addEventListener('hashchange', loadFromHash);
+loadFromHash();
+</script>
+</body>
+</html>
