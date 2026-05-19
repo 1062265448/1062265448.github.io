@@ -52,6 +52,15 @@
 
   <!-- 主内容 -->
   <main class="content" id="content">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <div class="breadcrumb">
+          <a onclick="navigate('home')">📚 知识库</a>
+          <span>/</span>
+          <span class="page-title" id="page-title">首页</span>
+        </div>
+      </div>
+    </div>
     <div class="content-inner" id="content-inner"></div>
   </main>
 </div>
@@ -688,6 +697,30 @@ function navigate(page) {
   content.querySelectorAll('pre code').forEach(block => {
     hljs.highlightElement(block);
   });
+
+  // 更新面包屑
+  const titleMap = {
+    'home': '首页',
+    'project-flatstore': 'flatstore 配货系统',
+    'project-nickel': 'nickel-miniprogram',
+    'project-mes': 'workshop-mes',
+    'project-showcase': '镍产品展示',
+    'matt-philosophy': '工程哲学',
+    'matt-typescript': 'TypeScript 精通之道',
+    'matt-skills': 'skills 仓库分析',
+    'matt-tsreset': 'ts-reset 设计哲学',
+    'matt-sandcastle': 'sandcastle 架构',
+    'matt-tserror': 'ts-error-translator',
+    'matt-evalite': 'evalite',
+    'matt-dict': 'dictionary-of-ai-coding',
+    'matt-agentrules': 'agent-rules-books',
+    'matt-xstate': 'xstate-catalogue',
+    'matt-zodfetch': 'zod-fetch',
+    'matt-bestpractices': '最佳实践总结',
+    'about': '关于本站',
+  };
+  const titleEl = document.getElementById('page-title');
+  if (titleEl && titleMap[page]) titleEl.textContent = titleMap[page];
 
   // 滚动到顶部
   window.scrollTo({ top: 0, behavior: 'smooth' });
